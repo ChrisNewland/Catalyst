@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: theme("colors.cream");
+  color: theme("colors.ink");
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+a.btn {
+  min-height: 44px;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px; /* prevent iOS zoom on focus */
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 font-semibold transition active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-moss text-white hover:bg-moss/90;
+  }
+  .btn-secondary {
+    @apply btn bg-ink/10 text-ink hover:bg-ink/15;
+  }
+  .btn-danger {
+    @apply btn bg-alarm text-white hover:bg-alarm/90;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-ink/5 p-4;
+  }
+  .field {
+    @apply flex flex-col gap-1 text-sm;
+  }
+  .field > input,
+  .field > textarea,
+  .field > select {
+    @apply rounded-lg border border-ink/20 px-3 py-3 bg-white;
+  }
+  .chip {
+    @apply inline-flex items-center justify-center rounded-full px-3 py-2 text-sm font-medium min-h-tap min-w-tap border;
+  }
+  .chip-on {
+    @apply bg-moss text-white border-moss;
+  }
+  .chip-off {
+    @apply bg-white text-ink border-ink/20;
+  }
+}

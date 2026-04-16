@@ -12,8 +12,7 @@ test.describe("screenshots @visual", () => {
     await page.screenshot({ path: "test-results/01-login.png", fullPage: true });
 
     // 2. Login error state
-    await page.getByLabel(/email/i).fill("admin@shelter.test");
-    await page.getByLabel(/password/i).fill("wrong");
+    await page.getByLabel(/shelter password/i).fill("wrong");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForSelector("[data-testid='login-error']");
     await page.screenshot({ path: "test-results/02-login-error.png", fullPage: true });
@@ -27,18 +26,19 @@ test.describe("screenshots @visual", () => {
     await page.screenshot({ path: "test-results/04-log-form-empty.png", fullPage: true });
 
     // 5. Log form filled in with defecated+bristol
+    await page.getByTestId("logged-by-name").fill("Sarah");
     await page.getByTestId("food-SOME").click();
     await page.getByTestId("water-NORMAL").click();
     await page.getByTestId("toggle-urinated").click();
     await page.getByTestId("toggle-defecated").click();
     await page.getByTestId("bristol-4").click();
     await page.getByTestId("condition-CONCERN").click();
-    await page.screenshot({ path: "test-results/05-log-form-filled.png", fullPage: true });
+    await page.screenshot({ path: "test-results/05-log-form.png", fullPage: true });
 
     // 6. Dashboard after log — with toast + "Visited today"
     await page.getByRole("button", { name: /^save visit$/i }).click();
     await page.waitForURL(/\/\?logged=/);
-    await page.screenshot({ path: "test-results/06-dashboard-after-log.png", fullPage: true });
+    await page.screenshot({ path: "test-results/06-dashboard-after.png", fullPage: true });
 
     // 7. Cat profile
     const link = page.getByRole("link", { name: /log again/i }).first();
@@ -55,9 +55,5 @@ test.describe("screenshots @visual", () => {
     // 9. Admin cats page
     await page.goto("/admin/cats");
     await page.screenshot({ path: "test-results/09-admin-cats.png", fullPage: true });
-
-    // 10. Admin users page
-    await page.goto("/admin/users");
-    await page.screenshot({ path: "test-results/10-admin-users.png", fullPage: true });
   });
 });

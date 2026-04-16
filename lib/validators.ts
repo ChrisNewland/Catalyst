@@ -11,9 +11,13 @@ const optionalTrimmed = z
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined));
 
+const trimmedNonEmpty = (field: string) =>
+  z.string({ required_error: `${field} is required` }).trim().min(1, `${field} is required`);
+
 export const LogEntryInput = z
   .object({
     catId: z.string().min(1),
+    loggedByName: trimmedNonEmpty("Logged by"),
     foodOffered: FoodOffered,
     waterIntake: WaterIntake,
     urinated: z.boolean(),
@@ -43,25 +47,13 @@ export const LogEntryInput = z
 export type LogEntryInput = z.infer<typeof LogEntryInput>;
 
 export const CatInput = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required"),
+  name: trimmedNonEmpty("Name"),
   notes: z.string().trim().optional().default(""),
   medicalFlags: z.string().trim().optional().default(""),
 });
 export type CatInput = z.infer<typeof CatInput>;
 
-export const UserInviteInput = z.object({
-  email: z.string().email(),
-  name: z.string().trim().min(1),
-  role: Role,
-  password: z.string().min(8),
-});
-export type UserInviteInput = z.infer<typeof UserInviteInput>;
-
 export const LoginInput = z.object({
-  email: z.string().email(),
   password: z.string().min(1),
 });
 export type LoginInput = z.infer<typeof LoginInput>;

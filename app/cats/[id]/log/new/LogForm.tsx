@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createLogEntry } from "@/lib/actions/logEntry";
 
@@ -18,6 +18,8 @@ const BRISTOL_LABELS: Record<number, string> = {
   7: "7 · Liquid",
 };
 
+const NAME_STORAGE_KEY = "catalyst:loggedByName";
+
 export default function LogForm({
   catId,
   catName,
@@ -28,6 +30,7 @@ export default function LogForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const [loggedByName, setLoggedByName] = useState("");
   const [food, setFood] = useState<Food>("NONE");
   const [water, setWater] = useState<Water>("NONE");
   const [urinated, setUrinated] = useState(false);
@@ -39,6 +42,15 @@ export default function LogForm({
   const [generalNotes, setGeneralNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(NAME_STORAGE_KEY);
+      if (saved) setLoggedByName(saved);
+    } catch {
+      // localStorage may be unavailable in private browsing — not fatal.
+    }
+  }, []);
+
   function onDefecatedChange(next: boolean) {
     setDefecated(next);
     if (!next) setBristol(null);
@@ -48,6 +60,11 @@ export default function LogForm({
     e.preventDefault();
     setError(null);
 
+    const trimmedName = loggedByName.trim();
+    if (!trimmedName) {
+      setError("Please enter your name before saving.");
+      return;
+    }
     if (defecated && bristol === null) {
       setError("Bristol score is required when defecated is true.");
       return;
@@ -55,6 +72,7 @@ export default function LogForm({
 
     const payload = {
       catId,
+      loggedByName: trimmedName,
       foodOffered: food,
       waterIntake: water,
       urinated,
@@ -71,6 +89,11 @@ export default function LogForm({
       if (!result.ok) {
         setError(result.error);
         return;
+      }
+      try {
+        window.localStorage.setItem(NAME_STORAGE_KEY, trimmedName);
+      } catch {
+        // ignore storage failures
       }
       const params = new URLSearchParams({ logged: catName });
       router.replace(`/?${params.toString()}`);
@@ -90,6 +113,20 @@ export default function LogForm({
           {error}
         </div>
       ) : null}
+
+      <label className="field card">
+        <span className="font-semibold">Logged by</span>
+        <input
+          type="text"
+          name="loggedByName"
+          data-testid="logged-by-name"
+          autoComplete="name"
+          value={loggedByName}
+          onChange={(e) => setLoggedByName(e.target.value)}
+          placeholder="Your name or initials"
+          aria-required="true"
+        />
+      </label>
 
       <fieldset className="card">
         <legend className="font-semibold px-1">Food offered</legend>

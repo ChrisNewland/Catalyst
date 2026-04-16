@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/db";
 import { LoginInput } from "@/lib/validators";
 import { authConfig } from "@/auth.config";
 
@@ -10,23 +8,31 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email" },
         password: { label: "Password", type: "password" },
       },
       authorize: async (raw) => {
         const parsed = LoginInput.safeParse(raw);
         if (!parsed.success) return null;
-        const { email, password } = parsed.data;
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return null;
-        const ok = await bcrypt.compare(password, user.hashedPassword);
-        if (!ok) return null;
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+        const { password } = parsed.data;
+
+        const adminPassword = process.env.SHELTER_ADMIN_PASSWORD;
+        const volunteerPassword = process.env.SHELTER_VOLUNTEER_PASSWORD;
+
+        if (adminPassword && password === adminPassword) {
+          return {
+            id: "shelter-admin",
+            name: "Shelter admin",
+            role: "ADMIN",
+          };
+        }
+        if (volunteerPassword && password === volunteerPassword) {
+          return {
+            id: "shelter-volunteer",
+            name: "Shelter volunteer",
+            role: "VOLUNTEER",
+          };
+        }
+        return null;
       },
     }),
   ],

@@ -5,6 +5,22 @@ test.describe("log entry form", () => {
   test.beforeEach(async ({ baseURL }) => {
     await resetDb(baseURL!);
   });
+
+  test("Logged by is required — saving without a name shows an inline error", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.getByRole("link", { name: /log visit/i }).first().click();
+
+    await page.getByTestId("food-SOME").click();
+    await page.getByTestId("water-NORMAL").click();
+    await page.getByRole("button", { name: /^save visit$/i }).click();
+
+    await expect(page.getByTestId("form-error")).toContainText(/name/i);
+    // Still on the log form — no redirect.
+    await expect(page).toHaveURL(/\/cats\/.+\/log\/new/);
+  });
+
   test("volunteer can log a minimal visit (urinated only) and return to dashboard", async ({
     page,
   }) => {
@@ -15,15 +31,11 @@ test.describe("log entry form", () => {
       page.getByRole("heading", { name: /log visit/i }),
     ).toBeVisible();
 
-    // Food: SOME
-    await page.getByRole("button", { name: /^some$/i, exact: false }).first().click();
-    // Water: NORMAL
+    await page.getByTestId("logged-by-name").fill("Sarah");
+    await page.getByTestId("food-SOME").click();
     await page.getByTestId("water-NORMAL").click();
-    // Urinated toggle on
     await page.getByTestId("toggle-urinated").click();
-    // defecated stays off; Bristol picker must not be visible
     await expect(page.getByTestId("bristol-picker")).toHaveCount(0);
-    // Submit
     await page.getByRole("button", { name: /^save visit$/i }).click();
 
     await expect(page).toHaveURL(/\/\?logged=/);
@@ -36,41 +48,56 @@ test.describe("log entry form", () => {
     await login(page);
     await page.getByRole("link", { name: /log visit/i }).first().click();
 
+    await page.getByTestId("logged-by-name").fill("Sarah");
     await expect(page.getByTestId("bristol-picker")).toHaveCount(0);
     await page.getByTestId("toggle-defecated").click();
     await expect(page.getByTestId("bristol-picker")).toBeVisible();
 
-    // Try to submit without picking a score -> inline error.
     await page.getByRole("button", { name: /^save visit$/i }).click();
     await expect(page.getByTestId("form-error")).toContainText(/bristol/i);
 
-    // Pick 4 and submit.
     await page.getByTestId("bristol-4").click();
     await page.getByRole("button", { name: /^save visit$/i }).click();
     await expect(page).toHaveURL(/\/\?logged=/);
+  });
+
+  test("Logged-by name is remembered for the next visit (localStorage)", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.getByRole("link", { name: /log visit/i }).first().click();
+
+    await page.getByTestId("logged-by-name").fill("Priya");
+    await page.getByTestId("food-ALL").click();
+    await page.getByTestId("water-NORMAL").click();
+    await page.getByRole("button", { name: /^save visit$/i }).click();
+    await expect(page).toHaveURL(/\/\?logged=/);
+
+    // Open another cat's log form and confirm the name is pre-filled.
+    await page.getByRole("link", { name: /log visit/i }).first().click();
+    await expect(page.getByTestId("logged-by-name")).toHaveValue("Priya");
   });
 
   test("after logging a cat moves from 'Needs visit today' to 'Visited today'", async ({
     page,
   }) => {
     await login(page);
-    // Pick the first cat explicitly by grabbing its name.
     const catLink = page.getByRole("link", { name: /log visit/i }).first();
     const cardText = await catLink.locator("..").innerText();
     const catName = cardText.split("\n")[0].trim();
     await catLink.click();
 
+    await page.getByTestId("logged-by-name").fill("Jo");
     await page.getByTestId("food-ALL").click();
     await page.getByTestId("water-NORMAL").click();
     await page.getByRole("button", { name: /^save visit$/i }).click();
     await expect(page).toHaveURL(/\/\?logged=/);
 
-    // Heading should now exist
     await expect(
       page.getByRole("heading", { name: /visited today/i }),
     ).toBeVisible();
-    // The cat is under "Visited today" with a "Log again" CTA.
     await expect(page.getByText(catName, { exact: true })).toBeVisible();
+    await expect(page.getByText(/last seen .* by jo/i)).toBeVisible();
     await expect(
       page.getByRole("link", { name: /log again/i }),
     ).toBeVisible();

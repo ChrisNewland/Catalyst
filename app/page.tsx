@@ -26,7 +26,6 @@ export default async function Dashboard({
         where: { recordedAt: { gte: startOfToday() } },
         orderBy: { recordedAt: "desc" },
         take: 1,
-        include: { volunteer: { select: { name: true } } },
       },
     },
   });
@@ -99,7 +98,7 @@ export default async function Dashboard({
                     <div className="font-semibold text-lg">{cat.name}</div>
                     <div className="text-xs text-ink/60">
                       Last seen {formatTime(last.recordedAt)} by{" "}
-                      {last.volunteer.name}
+                      {last.loggedByName}
                     </div>
                   </Link>
                   <Link

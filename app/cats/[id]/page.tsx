@@ -30,7 +30,6 @@ export default async function CatProfile({
   const entries = await prisma.logEntry.findMany({
     where: { catId: id, recordedAt: { gte: since } },
     orderBy: { recordedAt: "desc" },
-    include: { volunteer: { select: { name: true } } },
   });
 
   return (
@@ -73,7 +72,7 @@ export default async function CatProfile({
                 </span>
               </div>
               <div className="text-sm text-ink/70">
-                by {e.volunteer.name}
+                by {e.loggedByName}
               </div>
               <div className="text-sm">
                 Food: {titleCase(e.foodOffered)} · Water:{" "}

@@ -9,7 +9,10 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto max-w-sm pt-8">
-      <h1 className="text-2xl font-bold mb-6">Sign in</h1>
+      <h1 className="text-2xl font-bold mb-2">Catalyst</h1>
+      <p className="text-sm text-ink/60 mb-6">
+        Enter the shelter password to sign in.
+      </p>
       {error ? (
         <div
           data-testid="login-error"
@@ -17,15 +20,10 @@ export default async function LoginPage({
           aria-live="polite"
           className="mb-4 rounded-lg bg-alarm/10 text-alarm p-3 text-sm"
         >
-          Invalid email or password.
+          Incorrect password.
         </div>
       ) : null}
       <LoginForm from={from ?? "/"} />
-      <p className="text-xs text-ink/60 mt-6">
-        Seeded logins for development: <br />
-        admin@shelter.test / admin1234 <br />
-        vol@shelter.test / volunteer1234
-      </p>
     </div>
   );
 }

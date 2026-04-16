@@ -5,27 +5,38 @@ test.describe("authentication", () => {
   test.beforeEach(async ({ baseURL }) => {
     await resetDb(baseURL!);
   });
+
   test("unauthenticated user is redirected to /login", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /catalyst/i })).toBeVisible();
   });
 
-  test("login with bad credentials shows an error", async ({ page }) => {
+  test("login with wrong password shows an error", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel(/email/i).fill("admin@shelter.test");
-    await page.getByLabel(/password/i).fill("wrong");
+    await page.getByLabel(/shelter password/i).fill("wrong-password");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await expect(page.getByTestId("login-error")).toContainText(/invalid/i);
+    await expect(page.getByTestId("login-error")).toContainText(/incorrect/i);
   });
 
-  test("volunteer can log in and land on dashboard", async ({ page }) => {
+  test("volunteer shared password logs in as volunteer role", async ({
+    page,
+  }) => {
     await page.goto("/login");
-    await page.getByLabel(/email/i).fill("vol@shelter.test");
-    await page.getByLabel(/password/i).fill("volunteer1234");
+    await page.getByLabel(/shelter password/i).fill("volunteer1234");
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("heading", { name: /cats in care/i })).toBeVisible();
-    await expect(page.getByText(/val volunteer/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /cats in care/i }),
+    ).toBeVisible();
+    await expect(page.getByTestId("role-badge")).toHaveText(/volunteer/i);
+  });
+
+  test("admin shared password logs in as admin role", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel(/shelter password/i).fill("admin1234");
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page).toHaveURL("/");
+    await expect(page.getByTestId("role-badge")).toHaveText(/admin/i);
   });
 });

@@ -24,7 +24,6 @@ test.describe("admin", () => {
     await page.getByRole("button", { name: /^add cat$/i }).click();
 
     await expect(page.getByRole("row", { name: /pepper/i })).toBeVisible();
-    // It should also show up on the dashboard.
     await page.goto("/");
     await expect(page.getByText("Pepper", { exact: true })).toBeVisible();
   });
@@ -38,23 +37,7 @@ test.describe("admin", () => {
       .getByRole("row", { name: /shadow/i })
       .getByRole("button", { name: /archive/i })
       .click();
-    // Confirmed by dialog auto-accept? We'll just reload and check.
     await page.goto("/");
     await expect(page.getByText("Shadow", { exact: true })).toHaveCount(0);
-  });
-
-  test("admin can invite a new volunteer", async ({ page }) => {
-    await login(page, "admin");
-    await page.goto("/admin/users");
-    await expect(
-      page.getByRole("heading", { name: /manage volunteers/i }),
-    ).toBeVisible();
-
-    await page.getByLabel(/^name$/i).fill("Nora New");
-    await page.getByLabel(/email/i).fill("nora@shelter.test");
-    await page.getByLabel(/password/i).fill("nora12345");
-    await page.getByRole("button", { name: /^add volunteer$/i }).click();
-
-    await expect(page.getByRole("row", { name: /nora new/i })).toBeVisible();
   });
 });

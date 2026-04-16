@@ -5,7 +5,6 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm({ from }: { from: string }) {
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -16,12 +15,11 @@ export default function LoginForm({ from }: { from: string }) {
     setError(null);
     startTransition(async () => {
       const res = await signIn("credentials", {
-        email,
         password,
         redirect: false,
       });
       if (!res || res.error) {
-        setError("Invalid email or password.");
+        setError("Incorrect password.");
         return;
       }
       router.replace(from || "/");
@@ -42,25 +40,14 @@ export default function LoginForm({ from }: { from: string }) {
         </div>
       ) : null}
       <label className="field">
-        Email
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </label>
-      <label className="field">
-        Password
+        Shelter password
         <input
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
           required
+          autoFocus
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

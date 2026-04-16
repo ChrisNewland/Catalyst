@@ -13,8 +13,7 @@ export async function createLogEntry(
   raw: unknown,
 ): Promise<CreateLogEntryResult> {
   const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id;
-  if (!userId) return { ok: false, error: "Not signed in." };
+  if (!session?.user) return { ok: false, error: "Not signed in." };
 
   const parsed = LogEntryInput.safeParse(raw);
   if (!parsed.success) {
@@ -35,7 +34,7 @@ export async function createLogEntry(
   await prisma.logEntry.create({
     data: {
       catId: data.catId,
-      volunteerId: userId,
+      loggedByName: data.loggedByName,
       foodOffered: data.foodOffered,
       waterIntake: data.waterIntake,
       urinated: data.urinated,

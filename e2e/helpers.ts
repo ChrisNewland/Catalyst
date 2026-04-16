@@ -9,19 +9,17 @@ export async function resetDb(baseURL: string) {
   await ctx.dispose();
 }
 
-export const SEED = {
-  admin: { email: "admin@shelter.test", password: "admin1234", name: "Alex Admin" },
-  volunteer: { email: "vol@shelter.test", password: "volunteer1234", name: "Val Volunteer" },
+export const SHARED = {
+  volunteer: { password: "volunteer1234" },
+  admin: { password: "admin1234" },
 };
 
 export async function login(
   page: Page,
   who: "admin" | "volunteer" = "volunteer",
 ) {
-  const creds = SEED[who];
   await page.goto("/login");
-  await page.getByLabel(/email/i).fill(creds.email);
-  await page.getByLabel(/password/i).fill(creds.password);
+  await page.getByLabel(/shelter password/i).fill(SHARED[who].password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL("/");
 }

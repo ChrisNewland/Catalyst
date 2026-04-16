@@ -1,14 +1,10 @@
 import { describe, it, expect } from "vitest";
-import {
-  LogEntryInput,
-  CatInput,
-  UserInviteInput,
-  LoginInput,
-} from "../lib/validators";
+import { LogEntryInput, CatInput, LoginInput } from "../lib/validators";
 
 describe("LogEntryInput", () => {
   const base = {
     catId: "cat_123",
+    loggedByName: "Sarah",
     foodOffered: "SOME",
     waterIntake: "NORMAL",
     urinated: true,
@@ -19,6 +15,22 @@ describe("LogEntryInput", () => {
   it("accepts a minimal valid entry with no bristol when defecated is false", () => {
     const result = LogEntryInput.safeParse(base);
     expect(result.success).toBe(true);
+  });
+
+  it("requires loggedByName", () => {
+    const { loggedByName: _omit, ...withoutName } = base;
+    expect(LogEntryInput.safeParse(withoutName).success).toBe(false);
+  });
+
+  it("rejects empty or whitespace-only loggedByName", () => {
+    expect(LogEntryInput.safeParse({ ...base, loggedByName: "" }).success).toBe(false);
+    expect(LogEntryInput.safeParse({ ...base, loggedByName: "   " }).success).toBe(false);
+  });
+
+  it("trims loggedByName whitespace", () => {
+    const result = LogEntryInput.safeParse({ ...base, loggedByName: "  Sarah  " });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.loggedByName).toBe("Sarah");
   });
 
   it("requires bristolScore when defecated is true", () => {
@@ -96,58 +108,13 @@ describe("CatInput", () => {
   });
 });
 
-describe("UserInviteInput", () => {
-  it("accepts valid email + name + role + password", () => {
-    const result = UserInviteInput.safeParse({
-      email: "new@shelter.test",
-      name: "New Volunteer",
-      role: "VOLUNTEER",
-      password: "password123",
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects invalid email", () => {
-    const result = UserInviteInput.safeParse({
-      email: "not-an-email",
-      name: "X",
-      role: "VOLUNTEER",
-      password: "password123",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects short password", () => {
-    const result = UserInviteInput.safeParse({
-      email: "ok@shelter.test",
-      name: "X",
-      role: "VOLUNTEER",
-      password: "short",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects invalid role", () => {
-    const result = UserInviteInput.safeParse({
-      email: "ok@shelter.test",
-      name: "X",
-      role: "SUPERUSER",
-      password: "password123",
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
 describe("LoginInput", () => {
-  it("accepts valid email + password", () => {
-    const result = LoginInput.safeParse({
-      email: "a@b.test",
-      password: "anything",
-    });
+  it("accepts a password", () => {
+    const result = LoginInput.safeParse({ password: "anything" });
     expect(result.success).toBe(true);
   });
   it("rejects empty password", () => {
-    const result = LoginInput.safeParse({ email: "a@b.test", password: "" });
+    const result = LoginInput.safeParse({ password: "" });
     expect(result.success).toBe(false);
   });
 });

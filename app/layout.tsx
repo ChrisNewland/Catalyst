@@ -22,9 +22,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  const user = session?.user as
-    | { name?: string | null; role?: string }
-    | undefined;
+  const user = session?.user as { role?: string } | undefined;
 
   return (
     <html lang="en">
@@ -37,17 +35,15 @@ export default async function RootLayout({
               </Link>
               <nav className="flex items-center gap-3 text-sm">
                 {user.role === "ADMIN" && (
-                  <>
-                    <Link href="/admin/cats" className="underline">
-                      Cats
-                    </Link>
-                    <Link href="/admin/users" className="underline">
-                      Users
-                    </Link>
-                  </>
+                  <Link href="/admin/cats" className="underline">
+                    Cats
+                  </Link>
                 )}
-                <span className="text-ink/60 truncate max-w-[12ch]">
-                  {user.name}
+                <span
+                  className="text-ink/60"
+                  data-testid="role-badge"
+                >
+                  {user.role === "ADMIN" ? "Admin" : "Volunteer"}
                 </span>
                 <SignOutButton />
               </nav>

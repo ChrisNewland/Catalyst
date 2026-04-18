@@ -3,19 +3,26 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createLogEntry } from "@/lib/actions/logEntry";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type Food = "NONE" | "SOME" | "ALL";
 type Water = "NONE" | "SOME" | "NORMAL";
 type Condition = "GOOD" | "CONCERN" | "URGENT";
 
 const BRISTOL_LABELS: Record<number, string> = {
-  1: "1 · Hard pellets",
-  2: "2 · Lumpy",
-  3: "3 · Cracked",
-  4: "4 · Smooth",
-  5: "5 · Soft blobs",
-  6: "6 · Mushy",
-  7: "7 · Liquid",
+  1: "1 \u00b7 Hard pellets",
+  2: "2 \u00b7 Lumpy",
+  3: "3 \u00b7 Cracked",
+  4: "4 \u00b7 Smooth",
+  5: "5 \u00b7 Soft blobs",
+  6: "6 \u00b7 Mushy",
+  7: "7 \u00b7 Liquid",
 };
 
 const NAME_STORAGE_KEY = "catalyst:loggedByName";
@@ -47,7 +54,7 @@ export default function LogForm({
       const saved = window.localStorage.getItem(NAME_STORAGE_KEY);
       if (saved) setLoggedByName(saved);
     } catch {
-      // localStorage may be unavailable in private browsing — not fatal.
+      // localStorage may be unavailable
     }
   }, []);
 
@@ -93,7 +100,7 @@ export default function LogForm({
       try {
         window.localStorage.setItem(NAME_STORAGE_KEY, trimmedName);
       } catch {
-        // ignore storage failures
+        // ignore
       }
       const params = new URLSearchParams({ logged: catName });
       router.replace(`/?${params.toString()}`);
@@ -102,198 +109,248 @@ export default function LogForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {error ? (
         <div
           data-testid="form-error"
           role="status"
           aria-live="polite"
-          className="rounded-lg bg-alarm/10 text-alarm p-3 text-sm"
+          className="rounded-xl bg-destructive/10 text-destructive p-3 text-sm"
         >
           {error}
         </div>
       ) : null}
 
-      <label className="field card">
-        <span className="font-semibold">Logged by</span>
-        <input
-          type="text"
-          name="loggedByName"
-          data-testid="logged-by-name"
-          autoComplete="name"
-          value={loggedByName}
-          onChange={(e) => setLoggedByName(e.target.value)}
-          placeholder="Your name or initials"
-          aria-required="true"
-        />
-      </label>
+      <Card>
+        <CardContent className="pt-5">
+          <Label htmlFor="loggedByName" className="font-semibold">
+            Logged by
+          </Label>
+          <Input
+            id="loggedByName"
+            name="loggedByName"
+            data-testid="logged-by-name"
+            autoComplete="name"
+            aria-required="true"
+            value={loggedByName}
+            onChange={(e) => setLoggedByName(e.target.value)}
+            placeholder="Your name or initials"
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
 
-      <fieldset className="card">
-        <legend className="font-semibold px-1">Food offered</legend>
-        <div className="flex gap-2 mt-2">
-          {(["NONE", "SOME", "ALL"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              data-testid={`food-${v}`}
-              onClick={() => setFood(v)}
-              aria-pressed={food === v}
-              className={`chip flex-1 ${food === v ? "chip-on" : "chip-off"}`}
-            >
-              {titleCase(v)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="card">
-        <legend className="font-semibold px-1">Water intake</legend>
-        <div className="flex gap-2 mt-2">
-          {(["NONE", "SOME", "NORMAL"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              data-testid={`water-${v}`}
-              onClick={() => setWater(v)}
-              aria-pressed={water === v}
-              className={`chip flex-1 ${water === v ? "chip-on" : "chip-off"}`}
-            >
-              {titleCase(v)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <div className="card flex flex-col gap-3">
-        <Toggle
-          label="Urinated"
-          value={urinated}
-          testId="toggle-urinated"
-          onChange={setUrinated}
-        />
-        <Toggle
-          label="Defecated"
-          value={defecated}
-          testId="toggle-defecated"
-          onChange={onDefecatedChange}
-        />
-
-        {defecated && (
-          <div data-testid="bristol-picker">
-            <div className="text-sm text-ink/70 mb-2">Bristol stool score</div>
-            <div className="grid grid-cols-7 gap-1">
-              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  data-testid={`bristol-${n}`}
-                  onClick={() => setBristol(n)}
-                  aria-pressed={bristol === n}
-                  aria-label={BRISTOL_LABELS[n]}
-                  className={`chip ${bristol === n ? "chip-on" : "chip-off"}`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            {bristol !== null && (
-              <p className="text-xs text-ink/60 mt-1">
-                {BRISTOL_LABELS[bristol]}
-              </p>
-            )}
+      <Card>
+        <CardContent className="pt-5">
+          <Label className="font-semibold">Food offered</Label>
+          <div className="flex gap-2 mt-3">
+            {(["NONE", "SOME", "ALL"] as const).map((v) => (
+              <ChipButton
+                key={v}
+                testId={`food-${v}`}
+                active={food === v}
+                onClick={() => setFood(v)}
+              >
+                {titleCase(v)}
+              </ChipButton>
+            ))}
           </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
 
-      <fieldset className="card">
-        <legend className="font-semibold px-1">Condition</legend>
-        <div className="flex gap-2 mt-2">
-          {(["GOOD", "CONCERN", "URGENT"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              data-testid={`condition-${v}`}
-              onClick={() => setCondition(v)}
-              aria-pressed={condition === v}
-              className={`chip flex-1 ${condition === v ? "chip-on" : "chip-off"}`}
-            >
-              {titleCase(v)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <Card>
+        <CardContent className="pt-5">
+          <Label className="font-semibold">Water intake</Label>
+          <div className="flex gap-2 mt-3">
+            {(["NONE", "SOME", "NORMAL"] as const).map((v) => (
+              <ChipButton
+                key={v}
+                testId={`water-${v}`}
+                active={water === v}
+                onClick={() => setWater(v)}
+              >
+                {titleCase(v)}
+              </ChipButton>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      <label className="field card">
-        <span className="font-semibold">Weight (grams) — optional</span>
-        <input
-          type="number"
-          inputMode="numeric"
-          min={0}
-          step={1}
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="e.g. 4200"
-        />
-      </label>
+      <Card>
+        <CardContent className="pt-5 flex flex-col gap-4">
+          <div className="flex items-center justify-between min-h-tap">
+            <Label htmlFor="switch-urinated" className="font-semibold cursor-pointer">
+              Urinated
+            </Label>
+            <Switch
+              id="switch-urinated"
+              data-testid="toggle-urinated"
+              checked={urinated}
+              onCheckedChange={setUrinated}
+            />
+          </div>
 
-      <label className="field card">
-        <span className="font-semibold">Behaviour notes — optional</span>
-        <textarea
-          rows={2}
-          value={behaviourNotes}
-          onChange={(e) => setBehaviourNotes(e.target.value)}
-          placeholder="Playful, sleepy, hid under the cat tree…"
-        />
-      </label>
+          <div className="flex items-center justify-between min-h-tap">
+            <Label htmlFor="switch-defecated" className="font-semibold cursor-pointer">
+              Defecated
+            </Label>
+            <Switch
+              id="switch-defecated"
+              data-testid="toggle-defecated"
+              checked={defecated}
+              onCheckedChange={onDefecatedChange}
+            />
+          </div>
 
-      <label className="field card">
-        <span className="font-semibold">General notes — optional</span>
-        <textarea
-          rows={2}
-          value={generalNotes}
-          onChange={(e) => setGeneralNotes(e.target.value)}
-          placeholder="Anything else to flag"
-        />
-      </label>
+          {defecated && (
+            <div data-testid="bristol-picker">
+              <Label className="text-muted-foreground text-sm">
+                Bristol stool score
+              </Label>
+              <div className="grid grid-cols-7 gap-1 mt-2">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    data-testid={`bristol-${n}`}
+                    onClick={() => setBristol(n)}
+                    aria-pressed={bristol === n}
+                    aria-label={BRISTOL_LABELS[n]}
+                    className={cn(
+                      "rounded-xl min-h-tap min-w-tap text-sm font-semibold border transition-colors",
+                      bristol === n
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-input hover:bg-muted"
+                    )}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              {bristol !== null && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {BRISTOL_LABELS[bristol]}
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <button type="submit" disabled={isPending} className="btn-primary">
+      <Card>
+        <CardContent className="pt-5">
+          <Label className="font-semibold">Condition</Label>
+          <div className="flex gap-2 mt-3">
+            {(
+              [
+                { v: "GOOD" as const, color: "bg-teal text-teal-dark border-teal" },
+                { v: "CONCERN" as const, color: "bg-peach text-peach-dark border-peach" },
+                { v: "URGENT" as const, color: "bg-destructive/15 text-destructive border-destructive/30" },
+              ] as const
+            ).map(({ v, color }) => (
+              <button
+                key={v}
+                type="button"
+                data-testid={`condition-${v}`}
+                onClick={() => setCondition(v)}
+                aria-pressed={condition === v}
+                className={cn(
+                  "flex-1 rounded-xl min-h-tap text-sm font-semibold border transition-colors",
+                  condition === v
+                    ? color
+                    : "bg-background text-foreground border-input hover:bg-muted"
+                )}
+              >
+                {titleCase(v)}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-5">
+          <Label htmlFor="weight" className="font-semibold">
+            Weight (grams) — optional
+          </Label>
+          <Input
+            id="weight"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="e.g. 4200"
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-5">
+          <Label htmlFor="behaviourNotes" className="font-semibold">
+            Behaviour notes — optional
+          </Label>
+          <Textarea
+            id="behaviourNotes"
+            rows={2}
+            value={behaviourNotes}
+            onChange={(e) => setBehaviourNotes(e.target.value)}
+            placeholder="Playful, sleepy, hid under the cat tree…"
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-5">
+          <Label htmlFor="generalNotes" className="font-semibold">
+            General notes — optional
+          </Label>
+          <Textarea
+            id="generalNotes"
+            rows={2}
+            value={generalNotes}
+            onChange={(e) => setGeneralNotes(e.target.value)}
+            placeholder="Anything else to flag"
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
+
+      <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Saving…" : "Save visit"}
-      </button>
+      </Button>
     </form>
   );
 }
 
-function Toggle({
-  label,
-  value,
-  onChange,
+function ChipButton({
+  children,
+  active,
+  onClick,
   testId,
 }: {
-  label: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
+  children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
   testId: string;
 }) {
   return (
     <button
       type="button"
       data-testid={testId}
-      onClick={() => onChange(!value)}
-      aria-pressed={value}
-      className="flex items-center justify-between w-full min-h-tap px-2"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex-1 rounded-xl min-h-tap text-sm font-semibold border transition-colors",
+        active
+          ? "bg-primary text-primary-foreground border-primary"
+          : "bg-background text-foreground border-input hover:bg-muted"
+      )}
     >
-      <span className="font-medium">{label}</span>
-      <span
-        className={`h-7 w-12 rounded-full relative transition ${
-          value ? "bg-moss" : "bg-ink/20"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${
-            value ? "left-[22px]" : "left-0.5"
-          }`}
-        />
-      </span>
+      {children}
     </button>
   );
 }

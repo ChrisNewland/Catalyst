@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ClipboardCheck, PawPrint } from "lucide-react";
 
 function startOfToday(): Date {
   const d = new Date();
@@ -14,7 +17,7 @@ export default async function Dashboard({
   searchParams: Promise<{ logged?: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) return null; // middleware redirects; belt-and-braces.
+  if (!session?.user) return null;
 
   const { logged } = await searchParams;
 
@@ -40,29 +43,32 @@ export default async function Dashboard({
           data-testid="toast"
           role="status"
           aria-live="polite"
-          className="rounded-lg bg-moss/10 text-moss border border-moss/30 p-3 text-sm"
+          className="rounded-xl bg-teal/20 text-teal-dark border border-teal/40 p-3 text-sm font-medium flex items-center gap-2"
         >
+          <ClipboardCheck className="h-4 w-4 shrink-0" />
           Logged for {logged}.
         </div>
       ) : null}
       <h1 className="text-2xl font-bold">Cats in care</h1>
 
       {cats.length === 0 ? (
-        <p className="text-ink/60">
-          No cats registered yet.{" "}
-          {(session.user as { role?: string }).role === "ADMIN" ? (
-            <Link href="/admin/cats" className="underline">
-              Add the first cat
-            </Link>
-          ) : (
-            "Ask an admin to add some."
-          )}
-        </p>
+        <Card>
+          <CardContent className="text-center text-muted-foreground py-8">
+            No cats registered yet.{" "}
+            {(session.user as { role?: string }).role === "ADMIN" ? (
+              <Link href="/admin/cats" className="underline text-primary font-medium">
+                Add the first cat
+              </Link>
+            ) : (
+              "Ask an admin to add some."
+            )}
+          </CardContent>
+        </Card>
       ) : null}
 
       {needsVisit.length > 0 && (
         <section>
-          <h2 className="text-sm uppercase text-ink/60 mb-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3">
             Needs visit today
           </h2>
           <ul className="flex flex-col gap-2">
@@ -70,11 +76,19 @@ export default async function Dashboard({
               <li key={cat.id}>
                 <Link
                   href={`/cats/${cat.id}/log/new`}
-                  className="card flex items-center justify-between hover:bg-white/80"
                   data-testid={`cat-row-${cat.id}`}
                 >
-                  <span className="font-semibold text-lg">{cat.name}</span>
-                  <span className="btn-primary py-2 px-3 text-sm">Log visit</span>
+                  <Card className="hover:shadow-md transition-shadow hover:border-primary/30">
+                    <CardContent className="flex items-center justify-between py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="bg-pink rounded-full p-2">
+                          <PawPrint className="h-5 w-5 text-mauve-dark" />
+                        </span>
+                        <span className="font-semibold text-lg">{cat.name}</span>
+                      </div>
+                      <Button size="sm">Log visit</Button>
+                    </CardContent>
+                  </Card>
                 </Link>
               </li>
             ))}
@@ -84,29 +98,40 @@ export default async function Dashboard({
 
       {visitedToday.length > 0 && (
         <section>
-          <h2 className="text-sm uppercase text-ink/60 mb-2">Visited today</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3">
+            Visited today
+          </h2>
           <ul className="flex flex-col gap-2">
             {visitedToday.map((cat) => {
               const last = cat.logEntries[0];
               return (
-                <li
-                  key={cat.id}
-                  className="card flex items-center justify-between"
-                  data-testid={`cat-row-${cat.id}`}
-                >
-                  <Link href={`/cats/${cat.id}`} className="flex-1">
-                    <div className="font-semibold text-lg">{cat.name}</div>
-                    <div className="text-xs text-ink/60">
-                      Last seen {formatTime(last.recordedAt)} by{" "}
-                      {last.loggedByName}
-                    </div>
-                  </Link>
-                  <Link
-                    href={`/cats/${cat.id}/log/new`}
-                    className="btn-secondary py-2 px-3 text-sm ml-3"
+                <li key={cat.id}>
+                  <Card
+                    className="border-teal/30"
+                    data-testid={`cat-row-${cat.id}`}
                   >
-                    Log again
-                  </Link>
+                    <CardContent className="flex items-center justify-between py-4">
+                      <Link href={`/cats/${cat.id}`} className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-teal-light rounded-full p-2">
+                            <PawPrint className="h-5 w-5 text-teal-dark" />
+                          </span>
+                          <div>
+                            <div className="font-semibold text-lg">{cat.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Last seen {formatTime(last.recordedAt)} by{" "}
+                              {last.loggedByName}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                      <Link href={`/cats/${cat.id}/log/new`}>
+                        <Button variant="outline" size="sm" className="ml-3">
+                          Log again
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
                 </li>
               );
             })}

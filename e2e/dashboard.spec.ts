@@ -21,14 +21,14 @@ test.describe("dashboard", () => {
     ).toBeVisible();
   });
 
-  test("hides the admin Cats link from volunteers", async ({ page }) => {
+  test("hides the admin Manage cats link from volunteers", async ({ page }) => {
     await login(page, "volunteer");
-    await expect(page.getByRole("link", { name: /^cats$/i })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /manage cats/i })).toHaveCount(0);
   });
 
-  test("shows the admin Cats link to admins", async ({ page }) => {
+  test("shows the admin Manage cats link to admins", async ({ page }) => {
     await login(page, "admin");
-    await expect(page.getByRole("link", { name: /^cats$/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /manage cats/i })).toBeVisible();
   });
 
   test("sign out returns to login", async ({ page }) => {

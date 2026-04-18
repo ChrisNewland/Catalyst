@@ -2,11 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  background-color: theme("colors.cream");
-  color: theme("colors.ink");
-  -webkit-tap-highlight-color: transparent;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 340 10% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 340 10% 25%;
+
+    --primary: 340 30% 63%;       /* #C08497 mauve */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 190 25% 76%;     /* #B0D0D3 teal */
+    --secondary-foreground: 340 10% 25%;
+
+    --muted: 350 100% 93%;        /* #FFCAD4 pink */
+    --muted-foreground: 340 10% 45%;
+
+    --accent: 15 87% 79%;         /* #F7AF9D peach */
+    --accent-foreground: 340 10% 20%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 15% 88%;
+    --input: 340 15% 85%;
+    --ring: 340 30% 63%;          /* matches primary */
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 button,
@@ -19,39 +53,4 @@ input,
 textarea,
 select {
   font-size: 16px; /* prevent iOS zoom on focus */
-}
-
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 font-semibold transition active:scale-[0.98];
-  }
-  .btn-primary {
-    @apply btn bg-moss text-white hover:bg-moss/90;
-  }
-  .btn-secondary {
-    @apply btn bg-ink/10 text-ink hover:bg-ink/15;
-  }
-  .btn-danger {
-    @apply btn bg-alarm text-white hover:bg-alarm/90;
-  }
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-ink/5 p-4;
-  }
-  .field {
-    @apply flex flex-col gap-1 text-sm;
-  }
-  .field > input,
-  .field > textarea,
-  .field > select {
-    @apply rounded-lg border border-ink/20 px-3 py-3 bg-white;
-  }
-  .chip {
-    @apply inline-flex items-center justify-center rounded-full px-3 py-2 text-sm font-medium min-h-tap min-w-tap border;
-  }
-  .chip-on {
-    @apply bg-moss text-white border-moss;
-  }
-  .chip-off {
-    @apply bg-white text-ink border-ink/20;
-  }
 }

@@ -3,7 +3,8 @@
 interface Segment {
   label: string;
   value: number;
-  color: string;
+  /** CSS variable name (without the `--` prefix). */
+  var: string;
 }
 
 export default function BreakdownBar({ segments }: { segments: Segment[] }) {
@@ -12,12 +13,15 @@ export default function BreakdownBar({ segments }: { segments: Segment[] }) {
 
   return (
     <div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-surface-subtle ring-1 ring-inset ring-[color:var(--border)]">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted ring-1 ring-inset ring-border">
         {visible.map((s, i) => (
           <div
             key={i}
-            className={`${s.color} transition-[flex-basis] duration-300`}
-            style={{ flexBasis: `${(s.value / total) * 100}%` }}
+            className="transition-[flex-basis] duration-300"
+            style={{
+              flexBasis: `${(s.value / total) * 100}%`,
+              background: `hsl(var(--${s.var}))`,
+            }}
             title={`${s.label}: ${((s.value / total) * 100).toFixed(1)}%`}
           />
         ))}
@@ -25,9 +29,12 @@ export default function BreakdownBar({ segments }: { segments: Segment[] }) {
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
         {visible.map((s, i) => (
           <span key={i} className="inline-flex items-center gap-1.5">
-            <span className={`inline-block h-2 w-2 rounded-full ${s.color}`} />
-            <span className="font-medium text-ink-soft">{s.label}</span>
-            <span className="text-ink-muted tabular-nums">
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: `hsl(var(--${s.var}))` }}
+            />
+            <span className="font-medium text-foreground">{s.label}</span>
+            <span className="text-muted-foreground tabular-nums">
               {((s.value / total) * 100).toFixed(1)}%
             </span>
           </span>

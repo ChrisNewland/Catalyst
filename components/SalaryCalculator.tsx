@@ -15,6 +15,20 @@ import {
 } from "@/lib/tax";
 import Disclosure from "./Disclosure";
 import ResultPanel from "./ResultPanel";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const FREQUENCY_LABELS: Record<Frequency, string> = {
   yearly: "Yearly",
@@ -34,7 +48,7 @@ const STUDENT_LOAN_OPTIONS: { id: StudentLoanPlan; label: string; sub: string }[
 
 const PENSION_TYPES: { id: PensionType; label: string; sub: string }[] = [
   { id: "auto", label: "Auto-enrolment", sub: "Net pay arrangement — reduces tax, not NI." },
-  { id: "salarySacrifice", label: "Salary sacrifice", sub: "Reduces both tax and NI." },
+  { id: "salarySacrifice", label: "Salary sacrifice", sub: "Reduces tax, NI and student loan base." },
   { id: "personalRas", label: "Personal (RAS)", sub: "Paid from net pay; provider grosses up." },
   { id: "employer", label: "Employer only", sub: "Doesn't affect your take-home." },
 ];
@@ -92,125 +106,113 @@ export default function SalaryCalculator() {
   return (
     <div className="grid gap-6 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-2">
-        <div className="card animate-fade-in p-5 sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-              Your details
-            </h2>
-            <select
-              value={input.taxYear}
-              onChange={(e) => update("taxYear", e.target.value as TaxYear)}
-              className="rounded-lg border border-token bg-transparent px-2.5 py-1.5 text-xs font-semibold"
-              aria-label="Tax year"
-            >
-              {(Object.keys(TAX_YEARS) as TaxYear[]).map((y) => (
-                <option key={y} value={y}>
-                  Tax year {TAX_YEARS[y].label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-5">
-            <div>
-              <label className="label" htmlFor="gross">
-                Gross salary
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-ink-muted">
-                  £
-                </span>
-                <input
-                  id="gross"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step={100}
-                  value={input.grossInput || ""}
-                  onChange={(e) => update("grossInput", parseFloat(e.target.value) || 0)}
-                  className="input pl-8 tabular-nums"
-                  placeholder="35,000"
-                />
-              </div>
-              <div className="segmented mt-2">
-                {(Object.keys(FREQUENCY_LABELS) as Frequency[]).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    data-active={input.frequency === f}
-                    onClick={() => update("frequency", f)}
-                  >
-                    {FREQUENCY_LABELS[f]}
-                  </button>
-                ))}
-              </div>
+        <Card className="animate-fade-in">
+          <CardContent className="pt-6">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Your details
+              </h2>
+              <Select value={input.taxYear} onValueChange={(v) => update("taxYear", v as TaxYear)}>
+                <SelectTrigger className="h-8 w-auto gap-1.5 px-2.5 text-xs font-semibold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(TAX_YEARS) as TaxYear[]).map((y) => (
+                    <SelectItem key={y} value={y}>
+                      Tax year {TAX_YEARS[y].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {input.frequency === "hourly" && (
-              <NumberRow
-                label="Hours per week"
-                value={input.hoursPerWeek}
-                step={0.5}
-                onChange={(v) => update("hoursPerWeek", v)}
-              />
-            )}
-            {input.frequency === "daily" && (
-              <NumberRow
-                label="Days per week"
-                value={input.daysPerWeek}
-                step={0.5}
-                onChange={(v) => update("daysPerWeek", v)}
-              />
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="label" htmlFor="taxCode">
-                  Tax code
-                </label>
-                <input
-                  id="taxCode"
-                  type="text"
-                  value={input.taxCode}
-                  onChange={(e) => update("taxCode", e.target.value.toUpperCase())}
-                  className="input tabular-nums"
-                  spellCheck={false}
-                  autoCapitalize="characters"
-                />
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="gross">Gross salary</Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-muted-foreground">
+                    £
+                  </span>
+                  <Input
+                    id="gross"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step={100}
+                    value={input.grossInput || ""}
+                    onChange={(e) => update("grossInput", parseFloat(e.target.value) || 0)}
+                    className="pl-8 tabular-nums"
+                    placeholder="35,000"
+                  />
+                </div>
+                <Tabs value={input.frequency} onValueChange={(v) => update("frequency", v as Frequency)}>
+                  <TabsList className="grid w-full grid-cols-5">
+                    {(Object.keys(FREQUENCY_LABELS) as Frequency[]).map((f) => (
+                      <TabsTrigger key={f} value={f} className="text-xs sm:text-sm">
+                        {FREQUENCY_LABELS[f]}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
               </div>
-              <div>
-                <label className="label" htmlFor="age">
-                  Age
-                </label>
-                <input
-                  id="age"
-                  type="number"
-                  min={16}
-                  max={100}
-                  value={input.age}
-                  onChange={(e) => update("age", parseInt(e.target.value, 10) || 0)}
-                  className="input tabular-nums"
+
+              {input.frequency === "hourly" && (
+                <NumberRow
+                  id="hpw"
+                  label="Hours per week"
+                  value={input.hoursPerWeek}
+                  step={0.5}
+                  onChange={(v) => update("hoursPerWeek", v)}
                 />
+              )}
+              {input.frequency === "daily" && (
+                <NumberRow
+                  id="dpw"
+                  label="Days per week"
+                  value={input.daysPerWeek}
+                  step={0.5}
+                  onChange={(v) => update("daysPerWeek", v)}
+                />
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="taxCode">Tax code</Label>
+                  <Input
+                    id="taxCode"
+                    value={input.taxCode}
+                    onChange={(e) => update("taxCode", e.target.value.toUpperCase())}
+                    className="tabular-nums"
+                    spellCheck={false}
+                    autoCapitalize="characters"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="age">Age</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    min={16}
+                    max={100}
+                    value={input.age}
+                    onChange={(e) => update("age", parseInt(e.target.value, 10) || 0)}
+                    className="tabular-nums"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tax region</Label>
+                <Tabs value={input.region} onValueChange={(v) => update("region", v as Region)}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="england">England, Wales &amp; NI</TabsTrigger>
+                    <TabsTrigger value="scotland">Scotland</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
             </div>
-
-            <div>
-              <span className="label">Tax region</span>
-              <div className="segmented">
-                {(["england", "scotland"] as Region[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    data-active={input.region === r}
-                    onClick={() => update("region", r)}
-                  >
-                    {r === "england" ? "England, Wales & NI" : "Scotland"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <Disclosure
           title="Pension"
@@ -218,92 +220,85 @@ export default function SalaryCalculator() {
           defaultOpen
         >
           <div className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-2">
+            <RadioGroup
+              value={input.pensionType}
+              onValueChange={(v) => update("pensionType", v as PensionType)}
+              className="grid gap-2 sm:grid-cols-2"
+            >
               {PENSION_TYPES.map((p) => {
                 const selected = input.pensionType === p.id;
+                const id = `pen-${p.id}`;
                 return (
-                  <label
+                  <Label
                     key={p.id}
-                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                    htmlFor={id}
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-lg border p-3 normal-case tracking-normal transition-colors",
                       selected
-                        ? "border-brand-500 bg-brand-50 dark:bg-brand-950/40"
-                        : "border-token hover:bg-surface-subtle"
-                    }`}
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border hover:bg-secondary/60",
+                    )}
                   >
-                    <input
-                      type="radio"
-                      name="pensionType"
-                      checked={selected}
-                      onChange={() => update("pensionType", p.id)}
-                      className="mt-0.5 h-4 w-4 accent-brand-600"
-                    />
+                    <RadioGroupItem value={p.id} id={id} className="mt-0.5" />
                     <span className="flex flex-col">
-                      <span className="text-sm font-medium">{p.label}</span>
-                      <span className="text-xs text-ink-muted">{p.sub}</span>
+                      <span className="text-sm font-medium text-foreground">{p.label}</span>
+                      <span className="text-xs text-muted-foreground">{p.sub}</span>
                     </span>
-                  </label>
+                  </Label>
                 );
               })}
-            </div>
+            </RadioGroup>
 
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   step={input.pensionMode === "percent" ? 0.5 : 100}
                   value={input.pensionContribution || ""}
                   onChange={(e) => update("pensionContribution", parseFloat(e.target.value) || 0)}
-                  className="input pr-12 tabular-nums"
+                  className="pr-12 tabular-nums"
                 />
-                <span className="pointer-events-none absolute inset-y-0 right-0 grid w-10 place-items-center text-ink-muted">
+                <span className="pointer-events-none absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground">
                   {input.pensionMode === "percent" ? "%" : "£/yr"}
                 </span>
               </div>
-              <div className="segmented w-auto">
-                {(["percent", "amount"] as PensionMode[]).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    data-active={input.pensionMode === m}
-                    onClick={() => update("pensionMode", m)}
-                  >
-                    {m === "percent" ? "%" : "£"}
-                  </button>
-                ))}
-              </div>
+              <Tabs value={input.pensionMode} onValueChange={(v) => update("pensionMode", v as PensionMode)}>
+                <TabsList>
+                  <TabsTrigger value="percent">%</TabsTrigger>
+                  <TabsTrigger value="amount">£</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
           </div>
         </Disclosure>
 
         <Disclosure
           title="Student loan"
-          hint={input.studentLoans.length ? input.studentLoans.map((p) => labelForLoan(p)).join(" · ") : "Not applicable"}
+          hint={input.studentLoans.length ? input.studentLoans.map(labelForLoan).join(" · ") : "Not applicable"}
           badge={input.studentLoans.length || undefined}
         >
           <div className="grid gap-2 sm:grid-cols-2">
             {STUDENT_LOAN_OPTIONS.map((o) => {
               const checked = input.studentLoans.includes(o.id);
+              const id = `sl-${o.id}`;
               return (
-                <label
+                <Label
                   key={o.id}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                  htmlFor={id}
+                  className={cn(
+                    "flex cursor-pointer items-start gap-3 rounded-lg border p-3 normal-case tracking-normal transition-colors",
                     checked
-                      ? "border-brand-500 bg-brand-50 dark:bg-brand-950/40"
-                      : "border-token hover:bg-surface-subtle"
-                  }`}
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                      : "border-border hover:bg-secondary/60",
+                  )}
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleLoan(o.id)}
-                    className="mt-0.5 h-4 w-4 accent-brand-600"
-                  />
+                  <Checkbox id={id} checked={checked} onCheckedChange={() => toggleLoan(o.id)} className="mt-0.5" />
                   <span className="flex flex-col">
-                    <span className="text-sm font-medium">{o.label}</span>
-                    <span className="text-xs text-ink-muted">{o.sub}</span>
+                    <span className="text-sm font-medium text-foreground">{o.label}</span>
+                    <span className="text-xs text-muted-foreground">{o.sub}</span>
                   </span>
-                </label>
+                </Label>
               );
             })}
           </div>
@@ -315,10 +310,8 @@ export default function SalaryCalculator() {
           badge={extrasCount || undefined}
         >
           <div className="space-y-4">
-            <div>
-              <label className="label" htmlFor="bonus">
-                Annual bonus / commission
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="bonus">Annual bonus / commission</Label>
               <CurrencyInput
                 id="bonus"
                 value={input.bonusAnnual}
@@ -328,51 +321,35 @@ export default function SalaryCalculator() {
 
             {input.frequency === "hourly" ? (
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label" htmlFor="otHours">
-                    Overtime hrs / week
-                  </label>
-                  <input
-                    id="otHours"
-                    type="number"
-                    min={0}
-                    step={0.5}
-                    value={input.overtimeHoursPerWeek || ""}
-                    onChange={(e) => update("overtimeHoursPerWeek", parseFloat(e.target.value) || 0)}
-                    className="input tabular-nums"
-                  />
-                </div>
-                <div>
-                  <label className="label" htmlFor="otMult">
-                    Overtime multiplier
-                  </label>
-                  <input
-                    id="otMult"
-                    type="number"
-                    min={1}
-                    step={0.1}
-                    value={input.overtimeMultiplier || ""}
-                    onChange={(e) => update("overtimeMultiplier", parseFloat(e.target.value) || 1)}
-                    className="input tabular-nums"
-                  />
-                </div>
+                <NumberRow
+                  id="otHours"
+                  label="Overtime hrs / week"
+                  value={input.overtimeHoursPerWeek}
+                  step={0.5}
+                  onChange={(v) => update("overtimeHoursPerWeek", v)}
+                />
+                <NumberRow
+                  id="otMult"
+                  label="Overtime multiplier"
+                  value={input.overtimeMultiplier}
+                  step={0.1}
+                  onChange={(v) => update("overtimeMultiplier", v)}
+                />
               </div>
             ) : (
-              <p className="rounded-lg border border-dashed border-token p-3 text-xs text-ink-muted">
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
                 Overtime hours apply when paid hourly. Switch the salary frequency to “Hourly” to add overtime.
               </p>
             )}
 
-            <div>
-              <label className="label" htmlFor="secondJob">
-                Second job — annual gross (BR tax)
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="secondJob">Second job — annual gross (BR tax)</Label>
               <CurrencyInput
                 id="secondJob"
                 value={input.secondJobAnnual}
                 onChange={(v) => update("secondJobAnnual", v)}
               />
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="text-xs text-muted-foreground">
                 Second jobs use a BR tax code (20% flat) with their own NI thresholds.
               </p>
             </div>
@@ -385,60 +362,40 @@ export default function SalaryCalculator() {
           badge={adjustmentsCount || undefined}
         >
           <div className="space-y-4">
-            <div>
-              <label className="label" htmlFor="ccv">
-                Childcare vouchers (per month)
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="ccv">Childcare vouchers (per month)</Label>
               <CurrencyInput
                 id="ccv"
                 value={input.childcareVouchersMonthly}
                 onChange={(v) => update("childcareVouchersMonthly", v)}
               />
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="text-xs text-muted-foreground">
                 Pre-tax &amp; pre-NI. Legacy scheme capped at £{TAX_YEARS[input.taxYear].childcareVouchers.monthlyCap}/month.
               </p>
             </div>
-            <div>
-              <label className="label" htmlFor="bik">
-                Taxable benefits (BIK) — annual cash value
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="bik">Taxable benefits (BIK) — annual cash value</Label>
               <CurrencyInput
                 id="bik"
                 value={input.taxableBenefits}
                 onChange={(v) => update("taxableBenefits", v)}
               />
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="text-xs text-muted-foreground">
                 Company car, medical insurance etc. Adds to taxable income — no employee NI.
               </p>
             </div>
-            <label className="flex items-center gap-3 rounded-xl border border-token p-3">
-              <input
-                type="checkbox"
-                checked={input.marriageAllowance}
-                onChange={(e) => update("marriageAllowance", e.target.checked)}
-                className="h-4 w-4 accent-brand-600"
-              />
-              <span className="flex flex-col">
-                <span className="text-sm font-medium">Marriage Allowance (receiving)</span>
-                <span className="text-xs text-ink-muted">
-                  Spouse has transferred 10% of their personal allowance (£1,260) to you.
-                </span>
-              </span>
-            </label>
-            <label className="flex items-center gap-3 rounded-xl border border-token p-3">
-              <input
-                type="checkbox"
-                checked={input.blindAllowance}
-                onChange={(e) => update("blindAllowance", e.target.checked)}
-                className="h-4 w-4 accent-brand-600"
-              />
-              <span className="flex flex-col">
-                <span className="text-sm font-medium">Blind Person&apos;s Allowance</span>
-                <span className="text-xs text-ink-muted">
-                  Adds £{TAX_YEARS[input.taxYear].allowances.blindPersons.toLocaleString()} to your personal allowance.
-                </span>
-              </span>
-            </label>
+            <CheckCard
+              checked={input.marriageAllowance}
+              onChange={(v) => update("marriageAllowance", v)}
+              label="Marriage Allowance (receiving)"
+              hint="Spouse has transferred 10% of their personal allowance (£1,260) to you."
+            />
+            <CheckCard
+              checked={input.blindAllowance}
+              onChange={(v) => update("blindAllowance", v)}
+              label="Blind Person's Allowance"
+              hint={`Adds £${TAX_YEARS[input.taxYear].allowances.blindPersons.toLocaleString()} to your personal allowance.`}
+            />
           </div>
         </Disclosure>
       </section>
@@ -467,8 +424,8 @@ function CurrencyInput({
 }) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-ink-muted">£</span>
-      <input
+      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-muted-foreground">£</span>
+      <Input
         id={id}
         type="number"
         inputMode="decimal"
@@ -476,35 +433,69 @@ function CurrencyInput({
         step={100}
         value={value || ""}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        className="input pl-8 tabular-nums"
+        className="pl-8 tabular-nums"
       />
     </div>
   );
 }
 
 function NumberRow({
+  id,
   label,
   value,
   step,
   onChange,
 }: {
+  id: string;
   label: string;
   value: number;
   step: number;
   onChange: (v: number) => void;
 }) {
   return (
-    <div>
-      <label className="label">{label}</label>
-      <input
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
         type="number"
         min={0}
         step={step}
         value={value || ""}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        className="input tabular-nums"
+        className="tabular-nums"
       />
     </div>
+  );
+}
+
+function CheckCard({
+  checked,
+  onChange,
+  label,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  hint: string;
+}) {
+  const id = `chk-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  return (
+    <Label
+      htmlFor={id}
+      className={cn(
+        "flex cursor-pointer items-start gap-3 rounded-lg border p-3 normal-case tracking-normal transition-colors",
+        checked
+          ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+          : "border-border hover:bg-secondary/60",
+      )}
+    >
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
+      <span className="flex flex-col">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">{hint}</span>
+      </span>
+    </Label>
   );
 }
 

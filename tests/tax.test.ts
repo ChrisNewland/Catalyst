@@ -224,6 +224,33 @@ describe("calculate — Marriage Allowance & Blind", () => {
   });
 });
 
+describe("student loan × pension interaction", () => {
+  it("salary sacrifice reduces the student-loan assessable base", () => {
+    /** £88k Plan 2 with 5% AE: SL = (88000 - 28470) × 9% = 5,357.70 → £5,357 */
+    const ae = calculate(base({ grossInput: 88000, studentLoans: ["plan2"], pensionType: "auto", pensionContribution: 5 }));
+    expect(ae.studentLoan).toBe(5357);
+    /** With salary sacrifice, the sacrificed £4,400 is no longer "earnings":
+     *  SL = (88000 - 4400 - 28470) × 9% = 4961.70 → £4,961 */
+    const ss = calculate(base({ grossInput: 88000, studentLoans: ["plan2"], pensionType: "salarySacrifice", pensionContribution: 5 }));
+    expect(ss.studentLoan).toBe(4961);
+    expect(ae.studentLoan - ss.studentLoan).toBe(396);
+  });
+
+  it("RAS pension does not affect the student-loan base", () => {
+    const ras = calculate(base({ grossInput: 88000, studentLoans: ["plan2"], pensionType: "personalRas", pensionContribution: 5 }));
+    const ae = calculate(base({ grossInput: 88000, studentLoans: ["plan2"], pensionType: "auto", pensionContribution: 5 }));
+    expect(ras.studentLoan).toBe(ae.studentLoan);
+  });
+
+  it("childcare-voucher salary sacrifice reduces the student-loan base", () => {
+    const without = calculate(base({ grossInput: 88000, studentLoans: ["plan2"] }));
+    const withCcv = calculate(base({ grossInput: 88000, studentLoans: ["plan2"], childcareVouchersMonthly: 100 }));
+    /** Removing £1,200/yr from the SL base saves 9% × 1200 = £108 — but SL is floored. */
+    expect(without.studentLoan - withCcv.studentLoan).toBeGreaterThanOrEqual(107);
+    expect(without.studentLoan - withCcv.studentLoan).toBeLessThanOrEqual(108);
+  });
+});
+
 describe("calculate — tax year switch", () => {
   it("2024/25 Scottish bands differ from 2025/26", () => {
     const a = calculate(base({ grossInput: 30000, region: "scotland", taxYear: "2025-26" }));

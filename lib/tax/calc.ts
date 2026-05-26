@@ -186,7 +186,13 @@ export function calculate(input: CalculatorInput): Breakdown {
   const niMain = calcNI(niableBase, input.age, year);
   const niSecond = calcNI(secondJob, input.age, year);
 
-  const studentLoan = calcStudentLoan(grossPrimary + secondJob, input.studentLoans, year);
+  /** Student loan repayments are assessed on "earnings" — which for HMRC purposes
+   *  is gross *after* salary sacrifice (the sacrificed amount stops being earnings)
+   *  but *before* net-pay (AE) or RAS pension contributions. Childcare vouchers
+   *  via salary sacrifice are similarly removed. */
+  const slPrimaryBase =
+    input.pensionType === "salarySacrifice" ? grossPrimary - pension - childcare : grossPrimary - childcare;
+  const studentLoan = calcStudentLoan(slPrimaryBase + secondJob, input.studentLoans, year);
 
   let employeePension = 0;
   let pensionExtraRelief = 0;

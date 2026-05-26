@@ -1,0 +1,174 @@
+"use client";
+
+import type { Breakdown, CalculatorInput, Frequency } from "@/lib/tax";
+import BreakdownBar from "./BreakdownBar";
+
+const FREQUENCY_LABELS: Record<Frequency, string> = {
+  yearly: "Year",
+  monthly: "Month",
+  weekly: "Week",
+  daily: "Day",
+  hourly: "Hour",
+};
+
+export default function ResultPanel({
+  input,
+  result,
+  view,
+  onViewChange,
+  inFrequency,
+}: {
+  input: CalculatorInput;
+  result: Breakdown;
+  view: Frequency;
+  onViewChange: (f: Frequency) => void;
+  inFrequency: (annualAmount: number) => number;
+}) {
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
+      maximumFractionDigits: view === "hourly" || view === "daily" ? 2 : 0,
+      minimumFractionDigits: view === "hourly" || view === "daily" ? 2 : 0,
+    }).format(n);
+
+  const rows = (
+    [
+      { label: "Gross pay", amount: result.gross, sign: "+", tone: "text-ink" },
+      { label: "Income Tax", amount: result.incomeTax, sign: "-", tone: "text-danger" },
+      { label: "National Insurance", amount: result.nationalInsurance, sign: "-", tone: "text-danger" },
+      { label: "Pension", amount: result.pension, sign: "-", tone: "text-warning" },
+      { label: "Student loan", amount: result.studentLoan, sign: "-", tone: "text-warning" },
+    ] as const
+  ).filter((r) => r.amount > 0 || r.label === "Gross pay");
+
+  return (
+    <div className="space-y-6">
+      <div className="card animate-fade-in overflow-hidden p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+              Take-home per {FREQUENCY_LABELS[view].toLowerCase()}
+            </p>
+            <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight sm:text-5xl">
+              {fmt(inFrequency(result.takeHome))}
+            </p>
+            <p className="mt-1 text-sm text-ink-muted">
+              From {fmt(inFrequency(result.gross))} gross ·{" "}
+              <span className="font-medium text-ink-soft">
+                {(((result.takeHome / Math.max(1, result.gross)) * 100) || 0).toFixed(1)}% kept
+              </span>
+            </p>
+          </div>
+          <div className="segmented max-w-full sm:w-auto">
+            {(Object.keys(FREQUENCY_LABELS) as Frequency[]).map((f) => (
+              <button
+                key={f}
+                type="button"
+                data-active={view === f}
+                onClick={() => onViewChange(f)}
+              >
+                {FREQUENCY_LABELS[f]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <BreakdownBar
+            segments={[
+              { label: "Take-home", value: result.takeHome, color: "bg-brand-500" },
+              { label: "Income Tax", value: result.incomeTax, color: "bg-rose-500" },
+              { label: "NI", value: result.nationalInsurance, color: "bg-amber-500" },
+              { label: "Pension", value: result.pension, color: "bg-emerald-500" },
+              { label: "Student loan", value: result.studentLoan, color: "bg-violet-500" },
+            ]}
+          />
+        </div>
+
+        <ul className="mt-5 divide-y divide-[color:var(--border)]">
+          {rows.map((r) => (
+            <li key={r.label} className="flex items-center justify-between py-2.5">
+              <span className="text-sm text-ink-soft">{r.label}</span>
+              <span className={`text-sm font-semibold tabular-nums ${r.tone}`}>
+                {r.sign === "-" && r.amount > 0 ? "− " : ""}
+                {fmt(inFrequency(r.amount))}
+              </span>
+            </li>
+          ))}
+          <li className="flex items-center justify-between pt-3">
+            <span className="text-sm font-semibold">Take-home</span>
+            <span className="text-base font-bold tabular-nums text-success">
+              {fmt(inFrequency(result.takeHome))}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StatCard
+          label="Effective tax + NI"
+          value={`${(result.effectiveTaxRate * 100).toFixed(1)}%`}
+          hint="Total deductions ÷ gross"
+        />
+        <StatCard
+          label="Marginal rate"
+          value={`${(result.marginalRate * 100).toFixed(0)}%`}
+          hint="On your next £1 earned"
+        />
+        <StatCard
+          label="Personal allowance"
+          value={fmt(result.personalAllowance)}
+          hint={input.taxCode ? `Tax code ${input.taxCode.toUpperCase()}` : ""}
+        />
+      </div>
+
+      {result.taxBands.length > 0 && (
+        <div className="card p-5 sm:p-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+            How your Income Tax is calculated
+          </h3>
+          <ul className="mt-3 space-y-2">
+            {result.taxBands.map((b, i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between rounded-lg border border-token bg-surface-subtle px-3 py-2 text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{ background: bandColour(b.rate) }}
+                  />
+                  <span className="font-medium">{b.label}</span>
+                  <span className="text-ink-muted">@ {(b.rate * 100).toFixed(0)}%</span>
+                </span>
+                <span className="tabular-nums">
+                  <span className="text-ink-muted">{fmt(b.amount)} × {(b.rate * 100).toFixed(0)}% =</span>{" "}
+                  <span className="font-semibold">{fmt(b.tax)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="card p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">{label}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums">{value}</p>
+      {hint && <p className="mt-1 text-xs text-ink-muted">{hint}</p>}
+    </div>
+  );
+}
+
+function bandColour(rate: number): string {
+  if (rate <= 0.2) return "#10b981";
+  if (rate <= 0.21) return "#22c55e";
+  if (rate <= 0.4) return "#f59e0b";
+  if (rate <= 0.42) return "#f97316";
+  return "#dc2626";
+}

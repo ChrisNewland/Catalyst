@@ -2,56 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  background-color: theme("colors.cream");
-  color: theme("colors.ink");
-  -webkit-tap-highlight-color: transparent;
+:root {
+  color-scheme: light dark;
+  --bg: #f5f7fb;
+  --bg-soft: #ffffff;
+  --ink: #0b1220;
+  --ink-soft: #1f2937;
+  --ink-muted: #6b7280;
+  --border: rgba(15, 23, 42, 0.08);
+  --brand: #1d75ef;
+  --brand-strong: #194eb2;
 }
 
-button,
-[role="button"],
-a.btn {
-  min-height: 44px;
+.dark {
+  --bg: #0b1220;
+  --bg-soft: #111a2e;
+  --ink: #f5f7fb;
+  --ink-soft: #e5e7eb;
+  --ink-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --brand: #59b0ff;
+  --brand-strong: #8ecdff;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(29, 117, 239, 0.10), transparent 60%),
+    radial-gradient(1000px 600px at -10% 110%, rgba(89, 176, 255, 0.08), transparent 60%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(89, 176, 255, 0.10), transparent 60%),
+    radial-gradient(1000px 600px at -10% 110%, rgba(29, 117, 239, 0.12), transparent 60%);
 }
 
 input,
-textarea,
-select {
-  font-size: 16px; /* prevent iOS zoom on focus */
+select,
+textarea {
+  font-size: 16px;
 }
 
 @layer components {
+  .card {
+    @apply rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg-soft)] shadow-card;
+  }
+  .input {
+    @apply w-full rounded-xl border border-[color:var(--border)] bg-transparent px-3.5 py-2.5 text-[15px] outline-none transition
+           focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 placeholder:text-ink-muted;
+  }
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wide text-ink-muted mb-1.5;
+  }
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 font-semibold transition active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98];
   }
   .btn-primary {
-    @apply btn bg-moss text-white hover:bg-moss/90;
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
   }
-  .btn-secondary {
-    @apply btn bg-ink/10 text-ink hover:bg-ink/15;
-  }
-  .btn-danger {
-    @apply btn bg-alarm text-white hover:bg-alarm/90;
-  }
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-ink/5 p-4;
-  }
-  .field {
-    @apply flex flex-col gap-1 text-sm;
-  }
-  .field > input,
-  .field > textarea,
-  .field > select {
-    @apply rounded-lg border border-ink/20 px-3 py-3 bg-white;
+  .btn-ghost {
+    @apply btn border border-[color:var(--border)] hover:bg-[color:var(--bg)];
   }
   .chip {
-    @apply inline-flex items-center justify-center rounded-full px-3 py-2 text-sm font-medium min-h-tap min-w-tap border;
+    @apply inline-flex items-center gap-1 rounded-full border border-[color:var(--border)] px-2.5 py-1 text-xs font-medium;
   }
-  .chip-on {
-    @apply bg-moss text-white border-moss;
+  .segmented {
+    @apply inline-flex w-full rounded-xl border border-[color:var(--border)] bg-[color:var(--bg)] p-1;
   }
-  .chip-off {
-    @apply bg-white text-ink border-ink/20;
+  .segmented > button {
+    @apply flex-1 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition;
   }
+  .segmented > button[data-active="true"] {
+    @apply bg-[color:var(--bg-soft)] text-ink shadow-sm;
+  }
+}
+
+@layer utilities {
+  .text-ink { color: var(--ink); }
+  .text-ink-soft { color: var(--ink-soft); }
+  .text-ink-muted { color: var(--ink-muted); }
+  .bg-surface { background-color: var(--bg-soft); }
+  .bg-surface-subtle { background-color: var(--bg); }
+  .border-token { border-color: var(--border); }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
 }

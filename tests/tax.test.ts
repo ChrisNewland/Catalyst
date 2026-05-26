@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { calculate, parseTaxCode, annualiseGross, CalculatorInput } from "../lib/tax";
+import { calculate, parseTaxCode, annualiseGross, TAX_YEARS, CalculatorInput } from "../lib/tax";
+
+const Y = TAX_YEARS["2025-26"];
 
 function base(overrides: Partial<CalculatorInput> = {}): CalculatorInput {
   return {
@@ -46,18 +48,22 @@ describe("annualiseGross", () => {
 
 describe("parseTaxCode", () => {
   it("treats 1257L as standard personal allowance", () => {
-    expect(parseTaxCode("1257L", 12570).allowance).toBe(12570);
+    expect(parseTaxCode("1257L", Y).allowance).toBe(12570);
   });
-  it("treats BR as zero allowance, flat 20%", () => {
-    const r = parseTaxCode("BR", 12570);
+  it("treats BR as zero allowance, flat 20% sourced from year bands", () => {
+    const r = parseTaxCode("BR", Y);
     expect(r.allowance).toBe(0);
-    expect(r.flatRate).toBe(0.2);
+    expect(r.flatRate).toBe(Y.incomeTax.england[0].rate);
+  });
+  it("treats D0 as flat higher rate from year bands", () => {
+    const r = parseTaxCode("D0", Y);
+    expect(r.flatRate).toBe(Y.incomeTax.england[1].rate);
   });
   it("treats K100 as a negative allowance", () => {
-    expect(parseTaxCode("K100", 12570).allowance).toBe(-1000);
+    expect(parseTaxCode("K100", Y).allowance).toBe(-1000);
   });
   it("treats NT as no tax", () => {
-    expect(parseTaxCode("NT", 12570).allowance).toBe(Infinity);
+    expect(parseTaxCode("NT", Y).allowance).toBe(Infinity);
   });
 });
 

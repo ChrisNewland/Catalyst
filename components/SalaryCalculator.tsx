@@ -5,7 +5,6 @@ import {
   calculate,
   inFrequency,
   TAX_YEARS,
-  CHILDCARE_VOUCHER_MAX_MONTHLY,
   type CalculatorInput,
   type Frequency,
   type PensionMode,
@@ -396,7 +395,7 @@ export default function SalaryCalculator() {
                 onChange={(v) => update("childcareVouchersMonthly", v)}
               />
               <p className="mt-1 text-xs text-ink-muted">
-                Pre-tax &amp; pre-NI. Legacy scheme capped at £{CHILDCARE_VOUCHER_MAX_MONTHLY}/month.
+                Pre-tax &amp; pre-NI. Legacy scheme capped at £{TAX_YEARS[input.taxYear].childcareVouchers.monthlyCap}/month.
               </p>
             </div>
             <div>
@@ -436,7 +435,7 @@ export default function SalaryCalculator() {
               <span className="flex flex-col">
                 <span className="text-sm font-medium">Blind Person&apos;s Allowance</span>
                 <span className="text-xs text-ink-muted">
-                  Adds £{TAX_YEARS[input.taxYear].blindPersonsAllowance.toLocaleString()} to your personal allowance.
+                  Adds £{TAX_YEARS[input.taxYear].allowances.blindPersons.toLocaleString()} to your personal allowance.
                 </span>
               </span>
             </label>

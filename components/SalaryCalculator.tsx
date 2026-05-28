@@ -53,30 +53,35 @@ const PENSION_TYPES: { id: PensionType; label: string; sub: string }[] = [
   { id: "employer", label: "Employer only", sub: "Doesn't affect your take-home." },
 ];
 
-export default function SalaryCalculator() {
-  const [input, setInput] = useState<CalculatorInput>({
-    taxYear: "2025-26",
-    grossInput: 35000,
-    frequency: "yearly",
-    hoursPerWeek: 37.5,
-    daysPerWeek: 5,
-    bonusAnnual: 0,
-    overtimeHoursPerWeek: 0,
-    overtimeMultiplier: 1.5,
-    secondJobAnnual: 0,
-    taxCode: "1257L",
-    region: "england",
-    age: 30,
-    blindAllowance: false,
-    marriageAllowance: false,
-    pensionMode: "percent",
-    pensionType: "auto",
-    pensionContribution: 5,
-    childcareVouchersMonthly: 0,
-    taxableBenefits: 0,
-    studentLoans: [],
-  });
+export const DEFAULT_SALARY_INPUT: CalculatorInput = {
+  taxYear: "2025-26",
+  grossInput: 35000,
+  frequency: "yearly",
+  hoursPerWeek: 37.5,
+  daysPerWeek: 5,
+  bonusAnnual: 0,
+  overtimeHoursPerWeek: 0,
+  overtimeMultiplier: 1.5,
+  secondJobAnnual: 0,
+  taxCode: "1257L",
+  region: "england",
+  age: 30,
+  blindAllowance: false,
+  marriageAllowance: false,
+  pensionMode: "percent",
+  pensionType: "auto",
+  pensionContribution: 5,
+  childcareVouchersMonthly: 0,
+  taxableBenefits: 0,
+  studentLoans: [],
+};
 
+interface SalaryCalculatorProps {
+  input: CalculatorInput;
+  setInput: React.Dispatch<React.SetStateAction<CalculatorInput>>;
+}
+
+export default function SalaryCalculator({ input, setInput }: SalaryCalculatorProps) {
   const [resultView, setResultView] = useState<Frequency>("monthly");
   const result = useMemo(() => calculate(input), [input]);
 

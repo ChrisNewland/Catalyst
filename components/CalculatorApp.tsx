@@ -24,12 +24,12 @@ export default function CalculatorApp() {
   const heroTitle = !isSalary
     ? "When can you stop working?"
     : compareMode
-      ? "Compare two scenarios"
+      ? "Two salaries, side by side"
       : "What's your take-home pay?";
   const heroBody = !isSalary
     ? "Project your pension and ISA pots through to retirement. Coast FIRE, full FIRE and the UK pension-access bridge — all in today's pounds."
     : compareMode
-      ? "Side-by-side comparison — useful for job offers, salary-sacrifice vs auto-enrolment, student-loan impact, or pension contribution levels."
+      ? "Use the Compare view to weigh up a job offer or pension strategy, or the Combine view to see household take-home — each salary is taxed independently (separate codes, separate NI thresholds)."
       : "Enter your gross salary and we'll work out what lands in your bank account after Income Tax, National Insurance, pension and student loan repayments.";
 
   return (
@@ -59,12 +59,12 @@ export default function CalculatorApp() {
           (compareMode ? (
             <Button variant="outline" size="sm" onClick={() => setCompareMode(false)} className="gap-2">
               <X className="h-3.5 w-3.5" />
-              Exit comparison
+              Single salary
             </Button>
           ) : (
             <Button variant="outline" size="sm" onClick={() => setCompareMode(true)} className="gap-2">
               <GitCompare className="h-3.5 w-3.5" />
-              Compare scenarios
+              Two salaries
             </Button>
           ))}
       </div>

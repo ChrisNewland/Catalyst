@@ -2,96 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light dark;
-  --bg: #f5f7fb;
-  --bg-soft: #ffffff;
-  --ink: #0b1220;
-  --ink-soft: #1f2937;
-  --ink-muted: #6b7280;
-  --border: rgba(15, 23, 42, 0.08);
-  --brand: #1d75ef;
-  --brand-strong: #194eb2;
+@layer base {
+  /**
+   * Financial-tooling palette: deep forest green primary on warm cream,
+   * inverted to bright sage on near-black in dark mode. Avoids the
+   * generic-fintech blue while still feeling trustworthy and serious.
+   */
+  :root {
+    --background: 38 38% 97%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 156 64% 20%;
+    --primary-foreground: 38 38% 97%;
+
+    --secondary: 36 22% 92%;
+    --secondary-foreground: 220 20% 12%;
+
+    --muted: 36 22% 94%;
+    --muted-foreground: 220 9% 42%;
+
+    --accent: 158 64% 38%;
+    --accent-foreground: 38 38% 97%;
+
+    --destructive: 6 70% 45%;
+    --destructive-foreground: 38 38% 97%;
+
+    --border: 36 18% 86%;
+    --input: 36 18% 86%;
+    --ring: 156 64% 30%;
+
+    --radius: 0.75rem;
+
+    /** Semantic deduction colours — used by breakdown bar & tax-band markers. */
+    --money-income: 156 64% 32%;
+    --money-tax: 6 70% 45%;
+    --money-ni: 28 80% 50%;
+    --money-pension: 215 60% 40%;
+    --money-loan: 18 75% 48%;
+    --money-childcare: 175 60% 38%;
+    --money-bik: 270 40% 50%;
+  }
+
+  .dark {
+    --background: 220 22% 7%;
+    --foreground: 38 38% 96%;
+
+    --card: 220 18% 11%;
+    --card-foreground: 38 38% 96%;
+
+    --popover: 220 18% 11%;
+    --popover-foreground: 38 38% 96%;
+
+    --primary: 152 58% 55%;
+    --primary-foreground: 220 22% 7%;
+
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 38 38% 96%;
+
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 158 64% 48%;
+    --accent-foreground: 220 22% 7%;
+
+    --destructive: 6 72% 58%;
+    --destructive-foreground: 38 38% 96%;
+
+    --border: 220 14% 20%;
+    --input: 220 14% 20%;
+    --ring: 152 58% 55%;
+
+    --money-income: 152 58% 55%;
+    --money-tax: 6 75% 60%;
+    --money-ni: 28 88% 60%;
+    --money-pension: 215 75% 65%;
+    --money-loan: 18 80% 60%;
+    --money-childcare: 175 65% 55%;
+    --money-bik: 270 55% 70%;
+  }
 }
 
-.dark {
-  --bg: #0b1220;
-  --bg-soft: #111a2e;
-  --ink: #f5f7fb;
-  --ink-soft: #e5e7eb;
-  --ink-muted: #94a3b8;
-  --border: rgba(255, 255, 255, 0.08);
-  --brand: #59b0ff;
-  --brand-strong: #8ecdff;
-}
-
-html,
-body {
-  background: var(--bg);
-  color: var(--ink);
-  -webkit-tap-highlight-color: transparent;
-  -webkit-font-smoothing: antialiased;
-}
-
-body {
-  background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(29, 117, 239, 0.10), transparent 60%),
-    radial-gradient(1000px 600px at -10% 110%, rgba(89, 176, 255, 0.08), transparent 60%);
-  background-attachment: fixed;
-}
-
-.dark body {
-  background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(89, 176, 255, 0.10), transparent 60%),
-    radial-gradient(1000px 600px at -10% 110%, rgba(29, 117, 239, 0.12), transparent 60%);
-}
-
-input,
-select,
-textarea {
-  font-size: 16px;
-}
-
-@layer components {
-  .card {
-    @apply rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg-soft)] shadow-card;
+@layer base {
+  * {
+    @apply border-border;
   }
-  .input {
-    @apply w-full rounded-xl border border-[color:var(--border)] bg-transparent px-3.5 py-2.5 text-[15px] outline-none transition
-           focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 placeholder:text-ink-muted;
+  html,
+  body {
+    @apply bg-background text-foreground antialiased;
+    -webkit-tap-highlight-color: transparent;
+    font-feature-settings: "cv11", "ss01", "ss03";
   }
-  .label {
-    @apply block text-xs font-medium uppercase tracking-wide text-ink-muted mb-1.5;
+  body {
+    background-image: radial-gradient(
+        1200px 600px at 90% -20%,
+        hsl(var(--primary) / 0.08),
+        transparent 60%
+      ),
+      radial-gradient(900px 600px at -10% 110%, hsl(var(--accent) / 0.06), transparent 60%);
+    background-attachment: fixed;
   }
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98];
-  }
-  .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
-  }
-  .btn-ghost {
-    @apply btn border border-[color:var(--border)] hover:bg-[color:var(--bg)];
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full border border-[color:var(--border)] px-2.5 py-1 text-xs font-medium;
-  }
-  .segmented {
-    @apply inline-flex w-full rounded-xl border border-[color:var(--border)] bg-[color:var(--bg)] p-1;
-  }
-  .segmented > button {
-    @apply flex-1 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition;
-  }
-  .segmented > button[data-active="true"] {
-    @apply bg-[color:var(--bg-soft)] text-ink shadow-sm;
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 
 @layer utilities {
-  .text-ink { color: var(--ink); }
-  .text-ink-soft { color: var(--ink-soft); }
-  .text-ink-muted { color: var(--ink-muted); }
-  .bg-surface { background-color: var(--bg-soft); }
-  .bg-surface-subtle { background-color: var(--bg); }
-  .border-token { border-color: var(--border); }
-  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  /** Subtle inset ring used on key result cards. */
+  .ring-token {
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+  }
 }

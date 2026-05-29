@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animatePlugin from "tailwindcss-animate";
 
 const config: Config = {
   content: [
@@ -8,64 +9,90 @@ const config: Config = {
   ],
   darkMode: "class",
   theme: {
+    container: {
+      center: true,
+      padding: "1rem",
+      screens: { "2xl": "1280px" },
+    },
     extend: {
       colors: {
-        brand: {
-          50: "#eef7ff",
-          100: "#d9edff",
-          200: "#bce0ff",
-          300: "#8ecdff",
-          400: "#59b0ff",
-          500: "#3392fa",
-          600: "#1d75ef",
-          700: "#175edc",
-          800: "#194eb2",
-          900: "#1a458c",
-          950: "#142b56",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
-        ink: {
-          DEFAULT: "#0b1220",
-          soft: "#1f2937",
-          muted: "#6b7280",
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
-        surface: {
-          DEFAULT: "#ffffff",
-          subtle: "#f7f9fc",
-          raised: "#ffffff",
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
-        success: "#16a34a",
-        warning: "#d97706",
-        danger: "#dc2626",
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        /** Semantic financial palette — used directly for breakdown segments,
+         *  stat colours and category tagging. Each pair has a light + dark token. */
+        money: {
+          income: "hsl(var(--money-income))",
+          tax: "hsl(var(--money-tax))",
+          ni: "hsl(var(--money-ni))",
+          pension: "hsl(var(--money-pension))",
+          loan: "hsl(var(--money-loan))",
+          childcare: "hsl(var(--money-childcare))",
+          bik: "hsl(var(--money-bik))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: [
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "Roboto",
-          "Inter",
-          "sans-serif",
-        ],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
-      boxShadow: {
-        card: "0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06)",
-        "card-lg":
-          "0 1px 2px rgba(15, 23, 42, 0.05), 0 18px 48px rgba(15, 23, 42, 0.10)",
-      },
       keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
         "fade-in": {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
+        "accordion-down": "accordion-down 200ms ease-out",
+        "accordion-up": "accordion-up 200ms ease-out",
         "fade-in": "fade-in 200ms ease-out",
       },
     },
   },
-  plugins: [],
+  plugins: [animatePlugin],
 };
 
 export default config;

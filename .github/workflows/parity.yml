@@ -1,0 +1,28 @@
+name: Engine parity check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Independent from the deploy workflow so a failed parity check
+# does not block a deploy that's still wanted, and vice versa.
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run parity test suite
+        run: npx vitest run tests/parity.test.ts
+
+      - name: Run full test suite
+        run: npm test

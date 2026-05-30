@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import Disclosure from "./Disclosure";
 import RetirementProjectionChart from "./RetirementProjectionChart";
-import { AlertTriangle, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, Hourglass, Sparkles, Target, Wand2, Waves } from "lucide-react";
 
 interface Props {
   salaryInput: CalculatorInput;
@@ -260,27 +260,136 @@ export default function RetirementCalculator({ salaryInput }: Props) {
           </CardContent>
         </Card>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard
-            label="FIRE number"
-            value={fmtCompact(projection.fireNumber)}
-            hint={`${fmt0(input.annualSpend)} ÷ ${(input.swr * 100).toFixed(1)}% SWR`}
-          />
-          <StatCard
-            label="Coast FIRE today"
-            value={fmtCompact(projection.coastFireToday)}
-            hint={`Pot needed now to coast to ${input.targetRetirementAge} with zero further contributions`}
-          />
-          <StatCard
-            label={projection.canCoastNow ? "Coasting from" : "Stop contributing at"}
-            value={projection.coastFireAge !== null ? `Age ${projection.coastFireAge}` : "—"}
-            hint={
-              projection.coastFireAge !== null
-                ? "Pause contributions then; pot still grows to FIRE by target"
-                : `Not reachable by ${input.targetRetirementAge} at this contribution rate`
-            }
-          />
-        </div>
+        {(() => {
+          const currentPots = input.currentPensionPot + input.currentIsaPot;
+          const coastProgress =
+            projection.coastFireToday > 0
+              ? Math.min(100, (currentPots / projection.coastFireToday) * 100)
+              : 0;
+          const annualContrib = input.annualPensionContribution + input.annualIsaContribution;
+
+          return (
+            <>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MilestoneCard
+                  step={1}
+                  icon={<Target className="h-3.5 w-3.5" />}
+                  swatch="money-income"
+                  label="FIRE goal"
+                  value={fmtCompact(projection.fireNumber)}
+                  hint={
+                    <>
+                      The destination — pot you need to live off{" "}
+                      <strong className="text-foreground">{fmt0(input.annualSpend)}/yr</strong> forever at{" "}
+                      {(input.swr * 100).toFixed(1)}% SWR.
+                    </>
+                  }
+                />
+                <MilestoneCard
+                  step={2}
+                  icon={<Waves className="h-3.5 w-3.5" />}
+                  swatch="money-pension"
+                  label="Coast FIRE today"
+                  value={fmtCompact(projection.coastFireToday)}
+                  hint={
+                    <>
+                      Same destination on autopilot — pot you&apos;d need <strong className="text-foreground">now</strong>{" "}
+                      for compounding alone to reach FIRE by {input.targetRetirementAge}.{" "}
+                      {currentPots > 0 && (
+                        <span className="text-foreground">
+                          You&apos;re at {coastProgress.toFixed(0)}%.
+                        </span>
+                      )}
+                    </>
+                  }
+                />
+                <MilestoneCard
+                  step={3}
+                  icon={<Hourglass className="h-3.5 w-3.5" />}
+                  swatch="money-loan"
+                  label={projection.canCoastNow ? "Already coasting" : "Coast FIRE age"}
+                  value={projection.coastFireAge !== null ? `Age ${projection.coastFireAge}` : "—"}
+                  hint={
+                    projection.coastFireAge !== null
+                      ? "Earliest age you can pause contributions and still hit FIRE on time."
+                      : `Not reachable by ${input.targetRetirementAge} at this contribution rate.`
+                  }
+                />
+              </div>
+
+              <Card>
+                <CardContent className="space-y-4 pt-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    How these milestones fit together
+                  </h3>
+                  <ol className="space-y-3 text-sm">
+                    <li className="flex gap-3">
+                      <span
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                        style={{ background: "hsl(var(--money-income) / 0.15)", color: "hsl(var(--money-income))" }}
+                      >
+                        1
+                      </span>
+                      <span className="text-muted-foreground">
+                        <strong className="text-foreground">FIRE</strong> ({fmtCompact(projection.fireNumber)}) is the{" "}
+                        <em>destination</em> — the pot you need at {input.targetRetirementAge} to live off{" "}
+                        {fmt0(input.annualSpend)}/yr indefinitely.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                        style={{ background: "hsl(var(--money-pension) / 0.15)", color: "hsl(var(--money-pension))" }}
+                      >
+                        2
+                      </span>
+                      <span className="text-muted-foreground">
+                        <strong className="text-foreground">Coast FIRE today</strong> ({fmtCompact(projection.coastFireToday)}) is
+                        the same destination via the <em>lazy plan</em>: have this much invested now, never contribute
+                        again, and compound growth alone gets you there by {input.targetRetirementAge}.{" "}
+                        {currentPots > 0 && (
+                          <>
+                            You have {fmtCompact(currentPots)} ({coastProgress.toFixed(0)}% of the way).
+                          </>
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                        style={{ background: "hsl(var(--money-loan) / 0.15)", color: "hsl(var(--money-loan))" }}
+                      >
+                        3
+                      </span>
+                      <span className="text-muted-foreground">
+                        <strong className="text-foreground">Coast FIRE age</strong>{" "}
+                        {projection.coastFireAge !== null ? `(${projection.canCoastNow ? "now" : `age ${projection.coastFireAge}`})` : "(—)"}{" "}
+                        is <em>when</em> your current saving pace gets you to that lazy-plan threshold.{" "}
+                        {projection.canCoastNow ? (
+                          <>
+                            You&apos;ve already passed it — any further contributions are accelerators, not requirements.
+                          </>
+                        ) : projection.coastFireAge !== null ? (
+                          <>
+                            Your {fmtCompact(annualContrib)}/yr pace puts you at the Coast FIRE waypoint at age{" "}
+                            {projection.coastFireAge}. From then on, you could stop contributing entirely and still hit{" "}
+                            {fmtCompact(projection.fireNumber)} by {input.targetRetirementAge}.
+                          </>
+                        ) : (
+                          <>
+                            At {fmtCompact(annualContrib)}/yr you don&apos;t reach the threshold before{" "}
+                            {input.targetRetirementAge}. Lift contributions, push the target back, or trim retirement
+                            spend to make it reachable.
+                          </>
+                        )}
+                      </span>
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+            </>
+          );
+        })()}
 
         <Card>
           <CardContent className="space-y-3 pt-6">
@@ -436,6 +545,48 @@ function CheckboxRow({
         <span className="text-xs text-muted-foreground">{hint}</span>
       </span>
     </Label>
+  );
+}
+
+function MilestoneCard({
+  step,
+  icon,
+  swatch,
+  label,
+  value,
+  hint,
+}: {
+  step: number;
+  icon: React.ReactNode;
+  swatch: string;
+  label: string;
+  value: string;
+  hint: React.ReactNode;
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="space-y-2 pt-5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span
+              className="flex h-5 w-5 items-center justify-center rounded-full"
+              style={{ background: `hsl(var(--${swatch}) / 0.15)`, color: `hsl(var(--${swatch}))` }}
+            >
+              {icon}
+            </span>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+          </div>
+          <span
+            className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
+            style={{ background: `hsl(var(--${swatch}) / 0.15)`, color: `hsl(var(--${swatch}))` }}
+          >
+            {step}
+          </span>
+        </div>
+        <p className="font-display text-2xl font-bold tabular-nums">{value}</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
+      </CardContent>
+    </Card>
   );
 }
 
